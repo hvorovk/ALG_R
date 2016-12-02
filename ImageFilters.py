@@ -214,3 +214,60 @@ class GausianBlur():
                 li += w
                 ti += w
         return tcl
+
+class ContrastAdjustment():
+    """Class for contrast adjustments of a given picture"""
+
+    def __init__(self, initial_image):
+        self.x, self.y = initial_image.size
+        imgL = initial_image.load()
+        self.red = []
+        self.green = []
+        self.blue = []
+        # Set colour channels
+        for i in range(self.x):
+            for j in range(self.y):
+                self.red.append(imgL[i, j][0])
+                self.green.append(imgL[i, j][1])
+                self.blue.append(imgL[i, j][2])
+
+    
+    def _update(self):
+        """Update initail image using new colours"""
+        final_image = Image.new("RGB", (self.x, self.y))
+
+        for i in range(self.x):
+            for j in range(self.y):
+                final_image.putpixel(
+                    (i, j), 
+                    (self.red[i*self.y+j], self.green[i*self.y+j], self.blue[i*self.y+j])
+                    )
+        return final_image
+
+    def performAdjustment(self, contrast = 0.0):
+        """Perform contrast adjustments.
+
+        Arguments: 
+        contrast -- the desired level of contrast (default 100.0)
+        """
+        # Calculate a contrast correction factor
+        factor = (259 * (contrast + 255)) / (255 * (259 - contrast))
+
+        # Calculate new colours
+        for i in range(len(self.red)):
+            self.red[i] = self.truncate(factor * (self.red[i] - 128) + 128)
+        for i in range(len(self.green)):
+            self.green[i] = self.truncate(factor * (self.green[i] - 128) + 128)
+        for i in range(len(self.red)):
+            self.blue[i] = self.truncate(factor * (self.blue[i] - 128) + 128)
+
+        # Return updated image
+        return self._update()
+
+    def truncate(self, value):
+        """Truncate a given value"""
+        if value < 0:
+            value = 0
+        if value > 255:
+            value = 0
+        return int(value)
