@@ -1,10 +1,12 @@
 from PIL import Image
 import pickle
 import random
+from math import sqrt, exp
 # import sys
 
 
 class MosaicPy():
+
     def __init__(self, size, images="base.pickle"):
         """Init: size - size of blocks, images - path to your source img"""
         self.size_block = size
@@ -21,6 +23,10 @@ class MosaicPy():
     def change_size(self, size_new):
         """Change size of block"""
         self.size = size_new
+
+    def set_images(self, images: dict):
+        """set_images - method for set source pic for mattrix"""
+        self.images = images.copy
 
     def load_images(self, file="base.pickle"):
         """load_images - method for load source pic for mattrix"""
@@ -40,7 +46,7 @@ class MosaicPy():
         img_pos = tuple(map(lambda x: x // self.size_block, img.size))
         # load image in format which provide pixel access
         pixel_map = img.load()
-        # make var to save matrix of mid color levels
+        # make to save matrix of mid color levels
         matrix_colors = list()
         # first cycle column of table
         for i in range(img_pos[0]):
@@ -48,7 +54,7 @@ class MosaicPy():
             row = list()
             # second cycle row of table
             for j in range(img_pos[1]):
-                # temp var for save mid color level
+                # temp for save mid color level
                 mid_color = (0, 0, 0)
                 # third cycle column of block
                 for it in range(self.size_block):
@@ -94,3 +100,90 @@ class MosaicPy():
                                 j * self.size_block + self.size_block))
         # return this pic
         return new_image
+
+
+class GausianBlur():
+    """Class for make gausian blur with radius"""
+    def __init__(self):
+        pass
+
+    def boxesForGauss(self, sigma, n):  # standard deviation, number of boxes
+        wIdeal = sqrt((12*sigma*sigma/n)+1)  # Ideal averaging filter width
+        wl = int(wIdeal)
+        if not wl % 2:
+            wl -= 1
+        wu = wl + 2
+
+        mIdeal = (12 * (sigma ** 2) - n * (wl ** 2) - 4 * n * wl - 3 * n)/(-4 * wl - 4)
+        m = int(mIdeal+0.5)
+        return [(lambda x: wl if x < m else wu)(i) for i in range(n)]
+
+    def gaussBlur_4(self, scl, w, h, r):
+        bxs = self.boxesForGauss(r, 3)
+        tcl = self.boxBlur_4(scl, w, h, (bxs[0]-1)//2)
+        scl = self.boxBlur_4(tcl, w, h, (bxs[1]-1)//2)
+        return self.boxBlur_4(scl, w, h, (bxs[2]-1)//2)
+
+    def boxBlur_4(self, scl, w, h, r):
+        tcl = scl.copy()
+        scl = self.boxBlurH_4(tcl, scl, w, h, r)
+        return self.boxBlurT_4(scl, tcl, w, h, r)
+
+    def boxBlurH_4(self, scl, tcl, w, h, r):
+        iarr = 1 / (r + r + 1)
+        for i in range(h):
+            print(i)
+            ti = i * w
+            li = ti
+            ri = ti + r
+            fv = scl[ti]
+            lv = scl[ti + w-1]
+            val = (r + 1)*fv
+            for j in range(r):
+                val += scl[ti + j]
+            for j in range(r + 1):
+                val += scl[ri] - fv
+                ri += 1
+                tcl[ti] = int(0.5 + val * iarr)
+                ti += 1
+            for j in range(r+1, w-r):
+                val += scl[ri] - scl[li]
+                tcl[ti] = int(0.5 + val * iarr)
+                ri += 1
+                li += 1
+                ti += 1
+            for j in range(w-r, w):
+                val += lv - scl[li]
+                tcl[ti] = int(0.5 + val * iarr)
+                li += 1
+                ti += 1
+        return tcl
+
+    def boxBlurT_4(self, scl, tcl, w, h, r):
+        iarr = 1 / (r + r + 1)
+        for i in range(w):
+            ti = i
+            li = ti
+            ri = ti + r * w
+            fv = scl[ti]
+            lv = scl[ti + w * (h - 1)]
+            val = (r + 1) * fv
+            for j in range(r):
+                val += scl[ti + j * w]
+            for j in range(r+1):
+                val += scl[ri] - fv
+                tcl[ti] = int(0.5 + val * iarr)
+                ri += w
+                ti += w
+            for j in range(r+1, h-r):
+                val += scl[ri] - scl[li]
+                tcl[ti] = int(0.5 + val * iarr)
+                li += w
+                ri += w
+                ti += w
+            for j in range(h-r, h):
+                val += lv - scl[li]
+                tcl[ti] = int(0.5 + val * iarr)
+                li += w
+                ti += w
+        return tcl

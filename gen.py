@@ -10,17 +10,19 @@ import flickrapi
 
 
 class UploaderImage():
-    """ This class download & resize and dumped in pickle
-        format more image
-        use:
-        some = UploaderImage(path, count, path_to_key, size)
-        path - the path to your directory
-        count - count of output image
-        path_to_key - the path to your api key and secret
-                      (it dont save in program)
-        size - the size of each out image
-        some.upload(tag) - make pickle file which contain dict:
-        {tuple(RGB): image_pil...} """
+    """
+    This class download & resize and dumped in pickle
+    format more image
+    use:
+    some = UploaderImage(path, count, path_to_key, size)
+    path - the path to your directory
+    count - count of output image
+    path_to_key - the path to your api key and secret
+                  (it dont save in program)
+    size - the size of each out image
+    some.upload(tag) - make pickle file which contain dict:
+    {tuple(RGB): image_pil...}
+    """
 
     def __init__(self, path="images", count=1000, path_to_key="acces.json", size=50):
         with open(path_to_key) as conf:
