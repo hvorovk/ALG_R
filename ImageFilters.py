@@ -1,7 +1,8 @@
 from PIL import Image
 import pickle
 import random
-from math import sqrt, exp
+# import time
+from math import sqrt
 # import sys
 
 
@@ -103,11 +104,11 @@ class MosaicPy():
 
 
 class GausianBlur():
-    """Class for make gausian blur with radius"""
+
     def __init__(self):
         pass
 
-    def boxesForGauss(self, sigma, n):  # standard deviation, number of boxes
+    def boxes_for_gauss(self, sigma, n):  # standard deviation, number of boxes
         wIdeal = sqrt((12*sigma*sigma/n)+1)  # Ideal averaging filter width
         wl = int(wIdeal)
         if not wl % 2:
@@ -118,21 +119,47 @@ class GausianBlur():
         m = int(mIdeal+0.5)
         return [(lambda x: wl if x < m else wu)(i) for i in range(n)]
 
-    def gaussBlur_4(self, scl, w, h, r):
-        bxs = self.boxesForGauss(r, 3)
-        tcl = self.boxBlur_4(scl, w, h, (bxs[0]-1)//2)
-        scl = self.boxBlur_4(tcl, w, h, (bxs[1]-1)//2)
-        return self.boxBlur_4(scl, w, h, (bxs[2]-1)//2)
+    def gauss_blur(self, img, sigma):
+        if isinstance(img, str):
+            img = Image.open(img)
+        elif isinstance(img, Image):
+            pass
+        else:
+            return -1
 
-    def boxBlur_4(self, scl, w, h, r):
+        x, y = img.size
+        imgL = img.load()
+
+        imgFlat = []
+        for i in range(x):
+            for j in range(y):
+                imgFlat.append(imgL[i, j])
+
+        r = self.gauss_blur_on_chanel([i[0]for i in imgFlat], y, x, sigma)
+        g = self.gauss_blur_on_chanel([i[1]for i in imgFlat], y, x, sigma)
+        b = self.gauss_blur_on_chanel([i[2]for i in imgFlat], y, x, sigma)
+
+        out = Image.new("RGB", (x, y))
+        
+        for i in range(x):
+            for j in range(y):
+                out.putpixel((i, j), (r[i*y+j], g[i*y+j], b[i*y+j]))
+        return out
+
+    def gauss_blur_on_chanel(self, scl, w, h, r):
+        bxs = self.boxes_for_gauss(r, 3)
+        tcl = self.__box_blur(scl, w, h, (bxs[0]-1)//2)
+        scl = self.__box_blur(tcl, w, h, (bxs[1]-1)//2)
+        return self.__box_blur(scl, w, h, (bxs[2]-1)//2)
+
+    def __box_blur(self, scl, w, h, r):
         tcl = scl.copy()
-        scl = self.boxBlurH_4(tcl, scl, w, h, r)
-        return self.boxBlurT_4(scl, tcl, w, h, r)
+        scl = self.__box_blur_h(tcl, scl, w, h, r)
+        return self.__box_blur_t(scl, tcl, w, h, r)
 
-    def boxBlurH_4(self, scl, tcl, w, h, r):
+    def __box_blur_h(self, scl, tcl, w, h, r):
         iarr = 1 / (r + r + 1)
         for i in range(h):
-            print(i)
             ti = i * w
             li = ti
             ri = ti + r
@@ -159,7 +186,7 @@ class GausianBlur():
                 ti += 1
         return tcl
 
-    def boxBlurT_4(self, scl, tcl, w, h, r):
+    def __box_blur_t(self, scl, tcl, w, h, r):
         iarr = 1 / (r + r + 1)
         for i in range(w):
             ti = i

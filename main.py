@@ -38,25 +38,7 @@ from ImageFilters import GausianBlur
 
 if __name__ == "__main__":
     gausian = GausianBlur()
-    img = Image.open("temp.jpg")
-    img.show()
-    x, y = img.size
-    imgL = img.load()
-    imgFlat = []
-    for i in range(x):
-        for j in range(y):
-            imgFlat.append(imgL[i, j])
-    r = [i[0]for i in imgFlat]
-    g = [i[1]for i in imgFlat]
-    b = [i[2]for i in imgFlat]
-    r = gausian.gaussBlur_4(r, x, y, 3)
-    g = gausian.gaussBlur_4(g, x, y, 3)
-    b = gausian.gaussBlur_4(b, x, y, 3)
-    out = Image.new("RGB", img.size)
-    for i in range(x):
-        for j in range(y):
-            out.putpixel((i, j), (r[i*x+j], g[i*x+j], b[i*x+j]))
-    out.show()
+    gausian.gauss_blur("car.jpg", 1).save("my.jpg")
     # lenght = len(sys.argv)
     # magic = MosaicPy.ImageMatrix(10)
     # multi = False
