@@ -5,6 +5,7 @@ import random
 # from multiprocessing import Pool
 from PIL import Image
 from ImageFilters import GausianBlur
+from ImageFilters import ContrastAdjustment
 
 
 # def doit(inp):
@@ -57,6 +58,22 @@ if __name__ == "__main__":
         for j in range(y):
             out.putpixel((i, j), (r[i*x+j], g[i*x+j], b[i*x+j]))
     out.show()
+
+
+
+    # KIRILL KIRILL KIRILL KIRILL KIRILL
+
+    # Open an image using PIL
+    image_to_process = Image.open("batman.jpg")
+
+    contrast = ContrastAdjustment(image_to_process)
+
+    # Perform contrast correction, 
+    # argument - the desired level of contrast (0 by default)
+    corrected_img = contrast.performAdjustment(150)
+    corrected_img.show()
+
+
     # lenght = len(sys.argv)
     # magic = MosaicPy.ImageMatrix(10)
     # multi = False
