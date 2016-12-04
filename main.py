@@ -6,6 +6,9 @@ import random
 from PIL import Image
 from ImageFilters import GausianBlur
 from ImageFilters import ContrastAdjustment
+from ImageFilters import BrightnessAdjustment
+from ImageFilters import GammaCorrection
+from ImageFilters import Solarisation
 
 
 # def doit(inp):
@@ -44,13 +47,11 @@ if __name__ == "__main__":
     # KIRILL KIRILL KIRILL KIRILL KIRILL
 
     # Open an image using PIL
-    image_to_process = Image.open("batman.jpg")
+    image_to_process = Image.open("my.jpg")
 
-    contrast = ContrastAdjustment(image_to_process)
+    br = Solarisation(image_to_process)
 
-    # Perform contrast correction, 
-    # argument - the desired level of contrast (0 by default)
-    corrected_img = contrast.performAdjustment(150)
+    corrected_img = br.solarise(170)
     corrected_img.show()
 
     # lenght = len(sys.argv)

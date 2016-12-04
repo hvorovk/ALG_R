@@ -102,7 +102,6 @@ class MosaicPy():
         # return this pic
         return new_image
 
-
 class GausianBlur():
 
     def __init__(self):
@@ -256,9 +255,7 @@ class ContrastAdjustment():
         # Calculate new colours
         for i in range(len(self.red)):
             self.red[i] = self.truncate(factor * (self.red[i] - 128) + 128)
-        for i in range(len(self.green)):
             self.green[i] = self.truncate(factor * (self.green[i] - 128) + 128)
-        for i in range(len(self.red)):
             self.blue[i] = self.truncate(factor * (self.blue[i] - 128) + 128)
 
         # Return updated image
@@ -269,5 +266,155 @@ class ContrastAdjustment():
         if value < 0:
             value = 0
         if value > 255:
-            value = 0
+            value = 255
         return int(value)
+
+class BrightnessAdjustment():
+    """Class for brightness adjustment of a given picture"""
+
+    def __init__(self, initial_image):
+        self.x, self.y = initial_image.size
+        imgL = initial_image.load()
+        self.red = []
+        self.green = []
+        self.blue = []
+        # Set colour channels
+        for i in range(self.x):
+            for j in range(self.y):
+                self.red.append(imgL[i, j][0])
+                self.green.append(imgL[i, j][1])
+                self.blue.append(imgL[i, j][2])
+
+    
+    def _update(self):
+        """Update initail image using new colours"""
+        final_image = Image.new("RGB", (self.x, self.y))
+
+        for i in range(self.x):
+            for j in range(self.y):
+                final_image.putpixel(
+                    (i, j), 
+                    (self.red[i*self.y+j], self.green[i*self.y+j], self.blue[i*self.y+j])
+                    )
+        return final_image
+
+    def performAdjustment(self, brightness = 0.0):
+        """Perform brightness adjustments.
+
+        Arguments: 
+        brightness -- the desired level of brightness (default 0.0)
+        """
+
+        # Calculate new colours
+        for i in range(len(self.red)):
+            self.red[i] = self.truncate(self.red[i] + brightness)
+            self.green[i] = self.truncate(self.green[i] + brightness)
+            self.blue[i] = self.truncate(self.blue[i] + brightness)
+
+        # Return updated image
+        return self._update()
+
+    def truncate(self, value):
+        """Truncate a given value"""
+        if value < 0:
+            value = 0
+        if value > 255:
+            value = 255
+        return int(value)
+
+class GammaCorrection():
+    """Class for gamma correction of a given picture"""
+
+    def __init__(self, initial_image):
+        self.x, self.y = initial_image.size
+        imgL = initial_image.load()
+        self.red = []
+        self.green = []
+        self.blue = []
+        # Set colour channels
+        for i in range(self.x):
+            for j in range(self.y):
+                self.red.append(imgL[i, j][0])
+                self.green.append(imgL[i, j][1])
+                self.blue.append(imgL[i, j][2])
+
+    
+    def _update(self):
+        """Update initail image using new colours"""
+        final_image = Image.new("RGB", (self.x, self.y))
+
+        for i in range(self.x):
+            for j in range(self.y):
+                final_image.putpixel(
+                    (i, j), 
+                    (self.red[i*self.y+j], self.green[i*self.y+j], self.blue[i*self.y+j])
+                    )
+        return final_image
+
+    def performAdjustment(self, gamma = 2.0):
+        """Perform gamma correction.
+
+        Arguments: 
+        gamma -- the desired level of correction (default 2.0)
+        """
+
+        gammaCorrection = 1 / gamma
+
+        # Calculate new colours
+        for i in range(len(self.red)):
+            self.red[i] = int(255 * ((self.red[i] / 255) ** gammaCorrection))
+            self.green[i] = int(255 * ((self.green[i] / 255) ** gammaCorrection))
+            self.blue[i] = int(255 * ((self.blue[i] / 255) ** gammaCorrection))
+
+        # Return updated image
+        return self._update()
+
+class Solarisation():
+    """Class for solarisation of a given picture"""
+
+    def __init__(self, initial_image):
+        self.x, self.y = initial_image.size
+        imgL = initial_image.load()
+        self.red = []
+        self.green = []
+        self.blue = []
+        # Set colour channels
+        for i in range(self.x):
+            for j in range(self.y):
+                self.red.append(imgL[i, j][0])
+                self.green.append(imgL[i, j][1])
+                self.blue.append(imgL[i, j][2])
+
+    
+    def _update(self):
+        """Update initail image using new colours"""
+        final_image = Image.new("RGB", (self.x, self.y))
+
+        for i in range(self.x):
+            for j in range(self.y):
+                final_image.putpixel(
+                    (i, j), 
+                    (self.red[i*self.y+j], self.green[i*self.y+j], self.blue[i*self.y+j])
+                    )
+        return final_image
+
+    def solarise(self, threshold = None):
+        """Perform solarisation.
+
+        Arguments: 
+        threshold -- the intensity value which signals the filter to inverse the colour
+        (if not given, then filter performs the colour inversion for all intensity values)
+        """
+        if threshold is None:
+            for i in range(len(self.red)):
+                self.red[i] = 255 - self.red[i]
+                self.green[i] = 255 - self.green[i]
+                self.blue[i] = 255 - self.blue[i]
+        else:
+            for i in range(len(self.red)):
+                self.red[i] = 255 - self.red[i] if self.red[i] < threshold else self.red[i]
+                self.green[i] = 255 - self.green[i] if self.green[i] < threshold else self.green[i]
+                self.blue[i] = 255 - self.blue[i] if self.blue[i] < threshold else self.blue[i]
+
+        # Return updated image
+        return self._update()
