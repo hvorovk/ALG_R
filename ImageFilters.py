@@ -214,6 +214,64 @@ class GausianBlur():
                 ti += w
         return tcl
 
+class Operators():
+    def __init__(self):
+        pass
+
+    def make_sobel(self, img):
+        operators = ([[-1, 0, 1],
+                     [-2, 0, 2],
+                     [-1, 0, 1]],
+                    [[1, 2, 1],
+                     [0, 0, 0],
+                     [-1, -2, -1]])
+        return self.__apply(img, operators)
+
+    def make_scharr(self, img):
+        operators = ([[3, 10, 3],
+                     [0, 0, 0],
+                     [-3, -10, -3]],
+                    [[3, 0, -3],
+                     [10, 0, -10],
+                     [3, 0, -3]])
+        return self.__apply(img, operators)
+
+    def make_prewitt(self, img):
+        operators = ([[-1, 0, 1],
+                     [-1, 0, 1],
+                     [-1, 0, 1]],
+                    [[1, 1, 1],
+                     [0, 0, 0],
+                     [-1, -1, -1]])
+        return self.__apply(img, operators)
+
+    def __apply(self, img, operators):
+        if isinstance(img, str):
+            img = Image.open(img)
+        imgP = img.load()
+        size = img.size
+        output = Image.new("RGB", size)
+        for x in range(size[0]):
+            for y in range(size[1]):
+                if x == 0 or y == 0 or x == size[0]-1 or y == size[1]-1:
+                    aver = 0
+                else:
+                    sumX, sumY = 0, 0
+                    for i in [-1, 0, 1]:
+                        for j in [-1, 0, 1]:
+                            pix = imgP[x+i,y+j]
+                            sr = sum(pix) // 3
+                            sumX += sr * operators[0][i+1][j+1]
+                            sumY += sr * operators[1][i+1][j+1]
+                    aver = int(sqrt(sum((sumX ** 2, sumY ** 2))))
+                if aver > 255:
+                    aver = 255
+                elif aver < 0:
+                    aver = 0
+                output.putpixel((x,y), (aver, aver , aver))
+        return output
+
+
 class ContrastAdjustment():
     """Class for contrast adjustments of a given picture"""
 

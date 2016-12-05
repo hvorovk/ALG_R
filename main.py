@@ -6,9 +6,7 @@ import random
 from PIL import Image
 from ImageFilters import GausianBlur
 from ImageFilters import ContrastAdjustment
-from ImageFilters import BrightnessAdjustment
-from ImageFilters import GammaCorrection
-from ImageFilters import Solarisation
+from ImageFilters import Operators
 
 
 # def doit(inp):
@@ -39,20 +37,25 @@ from ImageFilters import Solarisation
 #         out.paste(mass[i], boxes[i])
 #     return out
 
-
 if __name__ == "__main__":
-    gausian = GausianBlur()
-    gausian.gauss_blur("gus.jpg", 1).save("my.jpg")
+    oper = Operators()
+    oper.make_sobel("gus.jpg").show()
+    oper.make_prewitt("gus.jpg").show()
+    oper.make_scharr("gus.jpg").show()
+    # gausian = GausianBlur()
+    # gausian.gauss_blur("gus.jpg", 1).save("my.jpg")
 
     # KIRILL KIRILL KIRILL KIRILL KIRILL
 
     # Open an image using PIL
-    image_to_process = Image.open("my.jpg")
+    # image_to_process = Image.open("batman.jpg")
 
-    br = Solarisation(image_to_process)
+    # contrast = ContrastAdjustment(image_to_process)
 
-    corrected_img = br.solarise(170)
-    corrected_img.show()
+    # # Perform contrast correction, 
+    # # argument - the desired level of contrast (0 by default)
+    # corrected_img = contrast.performAdjustment(-70)
+    # corrected_img.show()
 
     # lenght = len(sys.argv)
     # magic = MosaicPy.ImageMatrix(10)
