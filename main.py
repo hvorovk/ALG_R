@@ -1,92 +1,93 @@
-# import sys
-# import os
-# import time
+#!/usr/bin/python3
 import random
-# from multiprocessing import Pool
 from PIL import Image
+import argparse
+from time import time
 from ImageFilters import GausianBlur
 from ImageFilters import ContrastAdjustment
 from ImageFilters import Operators
+from ImageFilters import MosaicPy
+from ImageFilters import GammaCorrection
+from ImageFilters import ContrastAdjustment
+from ImageFilters import BrightnessAdjustment
+from ImageFilters import Solarisation
 
 
-# def doit(inp):
-#     return magic.make_mosaic("noelsematters", magic.load_image(inp))
+def main():
+    parser = argparse.ArgumentParser(description='-m=[gauss|gamma|mosaic|solar|contrast|sobel|prewitt|scharr|bright]\n' +
+                                                 '-if=[inputfile] is required,-of=[outputfile], -show for show image')
+    
+    parser.add_argument('-m', '-method', action='store', dest='method', default='mosaic')
+    parser.add_argument('-if', '-inputfile', action='store', dest='input_file')
+    parser.add_argument('-of', '-outputfile', action='store', dest='output_file')
+    parser.add_argument('-s', '-show', action='store_true', dest='show')
+    
+    parsed = parser.parse_args()
+    method = parsed.method
+    if not (parsed.input_file is None):
+        if method == 'mosaic':
+            mosaic = MosaicPy(15)
+            t = time()
+            output = mosaic.make_mosaic(parsed.input_file)
+            print("Time: " + str(time()-t))
+        elif method == 'gauss':
+            gauss = GausianBlur()
+            temp = int(input("Input sigma: "))
+            t = time()
+            output = gauss.gauss_blur(parsed.input_file, temp)
+            print("Time: " + str(time()-t))
+        elif method == 'gamma':
+            gamma = GammaCorrection(parsed.input_file)
+            temp = float(input("Input gamma: "))
+            t = time()
+            output = gamma.performAdjustment(temp)
+            print("Time: " + str(time()-t))
+        elif method == 'solar':
+            solar = Solarisation(parsed.input_file)
+            temp = int(input("Input intensity: "))
+            t = time()
+            output = solar.solarise(temp)
+            print("Time: " + str(time()-t))
+        elif method == 'contrast':
+            contrast = ContrastAdjustment(parsed.input_file)
+            temp = float(input("Input contrast: "))
+            t = time()
+            output = contrast.performAdjustment(temp)
+            print("Time: " + str(time()-t))
+        elif method == 'sobel':
+            operator = Operators()
+            t = time()
+            output = operator.make_sobel(parsed.input_file)
+            print("Time: " + str(time()-t))
+        elif method == 'prewitt':
+            operator = Operators()
+            t = time()
+            output = operator.make_prewitt(parsed.input_file)
+            print("Time: " + str(time()-t))
+        elif method == 'scharr':
+            operator = Operators()
+            t = time()
+            output = operator.make_scharr(parsed.input_file)
+            print("Time: " + str(time()-t))
+        elif method == 'bright':
+            bright = BrightnessAdjustment(parsed.input_file)
+            temp = float(input("Input brightness: "))
+            t = time()
+            output = bright.performAdjustment(temp)
+            print("Time: " + str(time()-t))
+        else:
+            print("-h for help.")
+            return
+    else:
+        print("-h for help.")
+        return
+    
+    if not (parsed.output_file is None):
+        output.save(parsed.output_file)
+    
+    if parsed.show:
+        output.show()
 
-
-# def split4(inp):
-#     a = Image.open(inp)
-#     x, y = a.size
-#     block = 10
-#     x, y = x-(x % block**2), y-(y % block**2)
-#     images = []
-#     boxes = [(0, 0, int(x/2), int(y/2)), (int(x/2), 0, x, int(y/2)),
-#              (0, int(y/2), int(x/2), y), (int(x/2), int(y/2), x, y)]
-#     for i in boxes:
-#         temp = Image.new("RGB", (int(x/2), int(y/2)))
-#         temp.paste(a.crop(i), boxes[0])
-#         images.append(temp)
-#     return images
-
-
-# def merge4(mass):
-#     x, y = (i*2 for i in mass[0].size)
-#     boxes = [(0, 0, int(x/2), int(y/2)), (int(x/2), 0, x, int(y/2)),
-#              (0, int(y/2), int(x/2), y), (int(x/2), int(y/2), x, y)]
-#     out = Image.new("RGB", (x, y))
-#     for i in range(4):
-#         out.paste(mass[i], boxes[i])
-#     return out
 
 if __name__ == "__main__":
-    oper = Operators()
-    oper.make_sobel("gus.jpg").show()
-    oper.make_prewitt("gus.jpg").show()
-    oper.make_scharr("gus.jpg").show()
-    # gausian = GausianBlur()
-    # gausian.gauss_blur("gus.jpg", 1).save("my.jpg")
-
-    # KIRILL KIRILL KIRILL KIRILL KIRILL
-
-    # Open an image using PIL
-    # image_to_process = Image.open("batman.jpg")
-
-    # contrast = ContrastAdjustment(image_to_process)
-
-    # # Perform contrast correction, 
-    # # argument - the desired level of contrast (0 by default)
-    # corrected_img = contrast.performAdjustment(-70)
-    # corrected_img.show()
-
-    # lenght = len(sys.argv)
-    # magic = MosaicPy.ImageMatrix(10)
-    # multi = False
-    # if lenght >= 4 and sys.argv[3] == 'm':
-    #     pool = Pool(4)
-    #     multi = True
-    # if lenght == 1:
-    #     pass
-    # elif lenght >= 2:
-    #     try:
-    #         if not os.path.exists(sys.argv[1]):
-    #             raise OSError
-    #     except OSError:
-    #         print(sys.argv[1] + " not found!")
-    #     out_image = sys.argv[2] if lenght >= 3 else input("Please enter out image name:")
-    #     if lenght == 5:
-    #         try:
-    #             if not os.path.exists(sys.argv[4]):
-    #                 raise OSError
-    #         except OSError:
-    #             print(sys.argv[4] + " not found!")
-    #         magic.load_images(sys.argv[4])
-    #     else:
-    #         magic.load_images()
-    #     print("Start processing:")
-    #     t = time.time()
-    #     if multi:
-    #         img = pool.map(doit, split4(sys.argv[1]))
-    #         merge4(img).save(out_image)
-    #     else:
-    #         img = Image.open(sys.argv[1])
-    #         doit(img).save(out_image)
-    #     print("successfully completed in: " + str(int(time.time()-t)))
+    main()

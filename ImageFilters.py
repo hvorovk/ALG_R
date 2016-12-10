@@ -276,6 +276,8 @@ class ContrastAdjustment():
     """Class for contrast adjustments of a given picture"""
 
     def __init__(self, initial_image):
+        if isinstance(initial_image, str):
+            initial_image = Image.open(initial_image)
         self.x, self.y = initial_image.size
         imgL = initial_image.load()
         self.red = []
@@ -289,7 +291,7 @@ class ContrastAdjustment():
                 self.blue.append(imgL[i, j][2])
 
     
-    def _update(self):
+    def __update(self):
         """Update initail image using new colours"""
         final_image = Image.new("RGB", (self.x, self.y))
 
@@ -317,7 +319,7 @@ class ContrastAdjustment():
             self.blue[i] = self.truncate(factor * (self.blue[i] - 128) + 128)
 
         # Return updated image
-        return self._update()
+        return self.__update()
 
     def truncate(self, value):
         """Truncate a given value"""
@@ -331,6 +333,8 @@ class BrightnessAdjustment():
     """Class for brightness adjustment of a given picture"""
 
     def __init__(self, initial_image):
+        if isinstance(initial_image, str):
+            initial_image = Image.open(initial_image)
         self.x, self.y = initial_image.size
         imgL = initial_image.load()
         self.red = []
@@ -344,7 +348,7 @@ class BrightnessAdjustment():
                 self.blue.append(imgL[i, j][2])
 
     
-    def _update(self):
+    def __update(self):
         """Update initail image using new colours"""
         final_image = Image.new("RGB", (self.x, self.y))
 
@@ -370,7 +374,7 @@ class BrightnessAdjustment():
             self.blue[i] = self.truncate(self.blue[i] + brightness)
 
         # Return updated image
-        return self._update()
+        return self.__update()
 
     def truncate(self, value):
         """Truncate a given value"""
@@ -384,6 +388,8 @@ class GammaCorrection():
     """Class for gamma correction of a given picture"""
 
     def __init__(self, initial_image):
+        if isinstance(initial_image, str):
+            initial_image = Image.open(initial_image)
         self.x, self.y = initial_image.size
         imgL = initial_image.load()
         self.red = []
@@ -397,7 +403,7 @@ class GammaCorrection():
                 self.blue.append(imgL[i, j][2])
 
     
-    def _update(self):
+    def __update(self):
         """Update initail image using new colours"""
         final_image = Image.new("RGB", (self.x, self.y))
 
@@ -425,12 +431,14 @@ class GammaCorrection():
             self.blue[i] = int(255 * ((self.blue[i] / 255) ** gammaCorrection))
 
         # Return updated image
-        return self._update()
+        return self.__update()
 
 class Solarisation():
     """Class for solarisation of a given picture"""
 
     def __init__(self, initial_image):
+        if isinstance(initial_image, str):
+            initial_image = Image.open(initial_image)
         self.x, self.y = initial_image.size
         imgL = initial_image.load()
         self.red = []
@@ -444,7 +452,7 @@ class Solarisation():
                 self.blue.append(imgL[i, j][2])
 
     
-    def _update(self):
+    def __update(self):
         """Update initail image using new colours"""
         final_image = Image.new("RGB", (self.x, self.y))
 
@@ -475,4 +483,4 @@ class Solarisation():
                 self.blue[i] = 255 - self.blue[i] if self.blue[i] < threshold else self.blue[i]
 
         # Return updated image
-        return self._update()
+        return self.__update()
