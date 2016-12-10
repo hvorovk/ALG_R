@@ -1,9 +1,8 @@
-from PIL import Image
 import pickle
 import random
-# import time
+import numpy as np
+from PIL import Image
 from math import sqrt
-# import sys
 
 
 class MosaicPy():
@@ -484,3 +483,216 @@ class Solarisation():
 
         # Return updated image
         return self.__update()
+
+
+class KMeansClustering():
+    """The implementation of K-Means clustering algorithm"""
+
+    def __init__(self):
+        # Maximum amount of iterations during clustering
+        self.MAX_ITERATIONS = 2
+        self.LABELS_CHANGED = None
+
+
+    def clusterImage(self, initial_image, k):
+        """Take an image as input and return a modified image"""
+        if isinstance(initial_image, str):
+            initial_image = Image.open(initial_image)
+        size_x, size_y = initial_image.size
+        imgL = initial_image.load()
+        self.x = []
+        self.y = []
+        self.red = []
+        self.green = []
+        self.blue = []
+        # Set colour channels
+        for i in range(size_x):
+            self.x.append(i)
+            for j in range(size_y):
+                self.red.append(imgL[i, j][0])
+                self.green.append(imgL[i, j][1])
+                self.blue.append(imgL[i, j][2])
+        for j in range(size_y):
+            self.y.append(j)
+        labels, centroids = self.__kmeans(k)
+        dict_of_centroids = {}
+        for i in range(k):
+          #  print(centroids[i])
+            dict_of_centroids[centroids[i][5]] = centroids[i][0:5]
+
+        final_image = Image.new("RGB", (size_x, size_y))
+
+        for i in range(size_x):
+            for j in range(size_y):
+                pos = i*size_y+j
+                final_image.putpixel(
+                        (i, j), 
+                        (dict_of_centroids[labels[pos]][2],
+                            dict_of_centroids[labels[pos]][3],
+                            dict_of_centroids[labels[pos]][4],
+                        )
+                    )
+        return final_image
+
+    def __getRandomCentroids(self, k):
+        """Generate k random centroids.
+
+        Each centroid has 5 dimensions: x, y, r, g, b
+        and its unique label
+        """
+        centroids = []
+        for i in range(k):
+            temp = []
+            temp.append(np.random.randint(len(self.x), size=1)[0])
+            temp.append(np.random.randint(len(self.y), size=1)[0])
+            temp.append(np.random.randint(255, size=1)[0])
+            temp.append(np.random.randint(255, size=1)[0])
+            temp.append(np.random.randint(255, size=1)[0])
+            temp.append(i)
+            centroids.append(temp)
+        return centroids
+
+    def __kmeans(self, k):
+        """ Function: K Means
+        
+        K-Means is an algorithm that takes in a dataset and a constant
+        k and returns k centroids (which define clusters of data in the
+        dataset which are similar to one another).     
+        Initialize centroids randomly.
+        """
+        centroids = self.__getRandomCentroids(k)
+        
+        # Initialize book keeping vars.
+        iterations = 0
+        oldCentroids = None
+        labels=[]
+        # Run the main k-means algorithm
+        while not self.__shouldStop(oldCentroids, centroids, iterations):
+            # Save old centroids for convergence test. Book keeping.
+            oldCentroids = centroids
+            iterations += 1
+            #print("Проход № %d" % iterations)
+            # Assign labels to each datapoint based on centroids-
+            labels = self.__getLabels(labels, centroids)
+            #print("Обновлено меток: %d" % self.LABELS_CHANGED)
+            # Assign centroids based on datapoint labels
+            centroids = self.__getCentroids(labels, k)
+            
+        return labels, centroids
+
+
+    def __shouldStop(self, oldCentroids, centroids, iterations):
+        """Return True or False if k-means is done."""
+        if self.LABELS_CHANGED is None:
+            if (iterations >= self.MAX_ITERATIONS):
+                return True
+        else:
+            if (iterations >= self.MAX_ITERATIONS) or (self.LABELS_CHANGED <= 10000): 
+                return True
+        return oldCentroids == centroids
+
+    def __getLabels(self, old_labels, centroids):
+        """For each element in the dataset, chose the closest centroid.
+
+        Method finds the closest centroid and assigns its label to the
+        pixel.
+        """
+        labels = []
+        self.LABELS_CHANGED = 0
+        if old_labels != []:
+            for x in self.x:
+                for y in self.y:
+                    pos = x*len(self.y)+y
+                    closest_centroid = self.__getClosestCentroid(
+                                            x,
+                                            y,
+                                            self.red[pos],
+                                            self.green[pos],
+                                            self.blue[pos],
+                                            centroids,
+                                            )
+                    labels.append(closest_centroid[5])
+                    if old_labels[pos] != labels[pos]:
+                        self.LABELS_CHANGED += 1
+        else:
+            for x in self.x:
+                for y in self.y:
+                    pos = x*len(self.y)+y
+                    closest_centroid = self.__getClosestCentroid(
+                                            x,
+                                            y,
+                                            self.red[pos],
+                                            self.green[pos],
+                                            self.blue[pos],
+                                            centroids,
+                                            )
+                    labels.append(closest_centroid[5])
+            self.LABELS_CHANGED = len(self.x)*len(self.y)
+
+        return labels
+
+    def __getClosestCentroid(self, x, y, r, g, b, centroids):
+        """Find the closest centroid for a given pixel.
+        
+        The pixel is described by its dimensions: 
+        x, y, red value, green value, blue value respectively.
+        """
+        min_distance = 999999999
+        closest_centroid = centroids[0]
+        for centroid in centroids:
+            current_distance = (abs(r-centroid[2])+
+                                abs(g-centroid[3])+
+                                abs(b-centroid[4]))
+            if current_distance < min_distance:
+                min_distance = current_distance
+                closest_centroid = centroid
+        return closest_centroid
+
+
+    def __getCentroids(self, labels, k):
+        """Return k centroids, each of dimension 5.
+
+        Each centroid is the geometric mean of the points that
+        have that centroid's label.
+        """
+
+        # Dictionary of centroids
+        # Each centroid in a dictionary has a label and
+        # a sum 
+
+        centroids = {}
+        for x in self.x:
+            for y in self.y:
+                # Check if a centroid with label i
+                # is in the dictionary
+                pos = x*len(self.y)+y
+                if labels[pos] in centroids.keys():
+                    centroids[labels[pos]][0] += x
+                    centroids[labels[pos]][1] += y
+                    centroids[labels[pos]][2] += self.red[pos]
+                    centroids[labels[pos]][3] += self.green[pos]
+                    centroids[labels[pos]][4] += self.blue[pos]
+                    centroids[labels[pos]][5] += 1
+                else:
+                    centroids[labels[pos]] = [x,
+                                    y,
+                                    self.red[pos],
+                                    self.green[pos],
+                                    self.blue[pos],
+                                    1
+                                    ]
+        list_of_centroids = []
+        for label in centroids.keys():
+            temp = []
+            for i in range(5):
+                temp.append(int(centroids[label][i] / centroids[label][5]))
+            temp.append(label)
+            list_of_centroids.append(temp)
+        while len(list_of_centroids) < k:
+            new = self.__getRandomCentroids(1)[0]
+            max_label = 0
+            for i in range(len(list_of_centroids)):
+                max_label = list_of_centroids[i][5] if list_of_centroids[i][5] > max_label else max_label
+            new[5] = max_label + 1
+            list_of_centroids.append(new)
+        return list_of_centroids

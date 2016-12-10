@@ -11,10 +11,11 @@ from ImageFilters import GammaCorrection
 from ImageFilters import ContrastAdjustment
 from ImageFilters import BrightnessAdjustment
 from ImageFilters import Solarisation
+from ImageFilters import KMeansClustering
 
 
 def main():
-    parser = argparse.ArgumentParser(description='-m=[gauss|gamma|mosaic|solar|contrast|sobel|prewitt|scharr|bright]\n' +
+    parser = argparse.ArgumentParser(description='-m=[gauss|gamma|mosaic|solar|contrast|sobel|prewitt|scharr|bright|kmeans]\n' +
                                                  '-if=[inputfile] is required,-of=[outputfile], -show for show image')
     
     parser.add_argument('-m', '-method', action='store', dest='method', default='mosaic')
@@ -29,52 +30,58 @@ def main():
             mosaic = MosaicPy(15)
             t = time()
             output = mosaic.make_mosaic(parsed.input_file)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'gauss':
             gauss = GausianBlur()
             temp = int(input("Input sigma: "))
             t = time()
             output = gauss.gauss_blur(parsed.input_file, temp)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'gamma':
             gamma = GammaCorrection(parsed.input_file)
             temp = float(input("Input gamma: "))
             t = time()
             output = gamma.performAdjustment(temp)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'solar':
             solar = Solarisation(parsed.input_file)
             temp = int(input("Input intensity: "))
             t = time()
             output = solar.solarise(temp)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'contrast':
             contrast = ContrastAdjustment(parsed.input_file)
             temp = float(input("Input contrast: "))
             t = time()
             output = contrast.performAdjustment(temp)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'sobel':
             operator = Operators()
             t = time()
             output = operator.make_sobel(parsed.input_file)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'prewitt':
             operator = Operators()
             t = time()
             output = operator.make_prewitt(parsed.input_file)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'scharr':
             operator = Operators()
             t = time()
             output = operator.make_scharr(parsed.input_file)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         elif method == 'bright':
             bright = BrightnessAdjustment(parsed.input_file)
             temp = float(input("Input brightness: "))
             t = time()
             output = bright.performAdjustment(temp)
-            print("Time: " + str(time()-t))
+            print("Time: " + str(round(time()-t, 3)) + ' s')
+        elif method == 'kmeans':
+            kmeans = KMeansClustering()
+            temp = int(input("Input count: "))
+            t = time()
+            output = kmeans.clusterImage(parsed.input_file, temp)
+            print("Time: " + str(round(time()-t, 3)) + ' s')
         else:
             print("-h for help.")
             return
